@@ -612,10 +612,130 @@ function renderPeople() {
 }
 
 
+// ─── PHISHING DETECTOR PAGE ─────────────────────────────────────────────────
+
+function renderPhishing() {
+    const content = document.getElementById('page-content');
+
+    content.innerHTML = `
+        <div class="page-header">
+            <h1>Phishing Email Detector</h1>
+            <p>Paste email content below to check if it's a phishing attempt</p>
+        </div>
+
+        <div class="register-layout">
+            <div class="card" style="flex:1;">
+                <div class="form-group">
+                    <label class="form-label" for="email-text">Email Content</label>
+                    <textarea class="form-input" id="email-text" rows="12"
+                        placeholder="Paste the full email text here..."
+                        style="resize:vertical;font-family:monospace;font-size:0.85rem;"></textarea>
+                </div>
+                <button class="btn btn-primary" id="btn-check" style="width:100%;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    Check Email
+                </button>
+            </div>
+
+            <div style="flex:1;">
+                <div class="card" id="result-card" style="display:none;">
+                    <div class="section-header">
+                        <h2>Detection Result</h2>
+                    </div>
+                    <div style="text-align:center;padding:24px 0;">
+                        <div id="result-icon" style="font-size:3rem;margin-bottom:12px;"></div>
+                        <div id="result-badge" style="margin-bottom:16px;"></div>
+                        <div style="color:var(--text-secondary);font-size:0.9rem;">Confidence</div>
+                        <div id="result-confidence" style="font-size:2rem;font-weight:700;margin-top:4px;"></div>
+                        <div class="progress-bar" style="margin-top:16px;">
+                            <div class="progress-fill" id="result-progress" style="width:0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="history-card">
+                    <div class="section-header">
+                        <h2>Check History</h2>
+                        <button class="btn btn-sm btn-secondary" id="btn-clear-history">Clear</button>
+                    </div>
+                    <div id="history-list">
+                        <div class="empty-state" style="padding:20px;">
+                            <p>No checks yet this session.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const history = [];
+
+    function renderHistory() {
+        const list = document.getElementById('history-list');
+        if (history.length === 0) {
+            list.innerHTML = `<div class="empty-state" style="padding:20px;"><p>No checks yet this session.</p></div>`;
+            return;
+        }
+        list.innerHTML = history.map(h => `
+            <div class="recognition-result">
+                <span class="badge ${h.label === 'Phishing' ? 'badge-danger' : 'badge-success'}">${h.label}</span>
+                <span style="flex:1;font-size:0.8rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.preview}</span>
+                <span class="confidence">${(h.confidence * 100).toFixed(1)}%</span>
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('btn-check').addEventListener('click', async () => {
+        const text = document.getElementById('email-text').value.trim();
+        if (!text) { showToast('Please paste email content first', 'error'); return; }
+
+        const btn = document.getElementById('btn-check');
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> Checking...';
+
+        try {
+            const result = await api.detectPhishing(text);
+            if (result.error) { showToast(result.error, 'error'); return; }
+
+            const isPhishing = result.label === 'Phishing';
+            const pct = (result.confidence * 100).toFixed(1);
+
+            const card = document.getElementById('result-card');
+            card.style.display = 'block';
+            document.getElementById('result-icon').textContent = isPhishing ? '🚨' : '✅';
+            document.getElementById('result-badge').innerHTML =
+                `<span class="badge ${isPhishing ? 'badge-danger' : 'badge-success'}" style="font-size:1rem;padding:6px 16px;">${result.label}</span>`;
+            document.getElementById('result-confidence').textContent = `${pct}%`;
+            document.getElementById('result-progress').style.width = `${pct}%`;
+
+            history.unshift({ label: result.label, confidence: result.confidence, preview: text.slice(0, 60) });
+            renderHistory();
+            showToast(`Result: ${result.label} (${pct}%)`, isPhishing ? 'error' : 'success');
+        } catch (e) {
+            showToast('Detection failed: ' + e.message, 'error');
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Check Email`;
+    });
+
+    document.getElementById('btn-clear-history').addEventListener('click', () => {
+        history.length = 0;
+        renderHistory();
+    });
+
+    return {};
+}
+
+
 // Make renderers available globally
 window.pages = {
     dashboard: renderDashboard,
     register: renderRegister,
     attendance: renderAttendance,
     people: renderPeople,
+    phishing: renderPhishing,
 };

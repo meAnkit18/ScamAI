@@ -49,6 +49,15 @@ const api = {
         const res = await fetch(`${API_BASE}/api/train`, { method: 'POST' });
         return res.json();
     },
+
+    async detectPhishing(text) {
+        const res = await fetch(`${API_BASE}/api/phishing/detect`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text }),
+        });
+        return res.json();
+    },
 };
 
 window.api = api;

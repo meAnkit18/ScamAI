@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
         .on('/', () => pages.dashboard())
         .on('/register', () => pages.register())
         .on('/attendance', () => pages.attendance())
-        .on('/people', () => pages.people());
+        .on('/people', () => pages.people())
+        .on('/phishing', () => pages.phishing());
 
     router.start();
 });

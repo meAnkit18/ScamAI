@@ -21,6 +21,7 @@ from recognize import (
     load_encodings,
     DATASET_PATH,
 )
+from phishing import predict_email as phishing_predict
 
 app = Flask(__name__, static_folder="frontend", static_url_path="/frontend")
 CORS(app)
@@ -203,6 +204,23 @@ def api_attendance_all():
     """Get all attendance records."""
     records = get_attendance()
     return jsonify({"records": records, "total": len(records)})
+
+
+@app.route("/api/phishing/detect", methods=["POST"])
+def api_phishing_detect():
+    """
+    Detect if email text is phishing.
+    Body: { "text": "email content..." }
+    """
+    data = request.get_json()
+    text = data.get("text", "").strip()
+    if not text:
+        return jsonify({"error": "Email text is required"}), 400
+    try:
+        result = phishing_predict(text)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/train", methods=["POST"])
