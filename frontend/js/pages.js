@@ -389,15 +389,17 @@ function renderAttendance() {
 
         countEl.textContent = `${recognizedFaces.length} face${recognizedFaces.length !== 1 ? 's' : ''}`;
 
-        container.innerHTML = recognizedFaces.map(f => `
-            <div class="recognition-result">
-                <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-gradient);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">
-                    ${getInitials(f.name)}
+        container.innerHTML = recognizedFaces.map(f => {
+            const isUnknown = f.name === 'Unknown';
+            return `
+            <div class="recognition-result${isUnknown ? ' unknown' : ''}">
+                <div style="width:36px;height:36px;border-radius:50%;background:${isUnknown ? '#ef4444' : 'var(--accent-gradient)'};display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;color:#fff;">
+                    ${isUnknown ? '?' : getInitials(f.name)}
                 </div>
                 <span class="face-name">${f.name.replace(/_/g, ' ')}</span>
                 <span class="confidence">${(f.confidence * 100).toFixed(1)}%</span>
             </div>
-        `).join('');
+        `}).join('');
     }
 
     return {

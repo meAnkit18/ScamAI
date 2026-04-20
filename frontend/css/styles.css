@@ -725,6 +725,11 @@ tr:hover td { background: rgba(212, 168, 83, 0.02); }
     animation: resultIn 0.2s ease;
 }
 
+.recognition-result.unknown {
+    border-left: 2px solid #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
 @keyframes resultIn {
     from { opacity: 0; transform: translateX(-6px); }
     to { opacity: 1; transform: translateX(0); }
@@ -736,12 +741,20 @@ tr:hover td { background: rgba(212, 168, 83, 0.02); }
     font-size: 0.9rem;
 }
 
+.recognition-result.unknown .face-name {
+    color: #ef4444;
+}
+
 .recognition-result .confidence {
     font-family: var(--mono);
     font-size: 0.7rem;
     color: var(--green);
     font-weight: 600;
     letter-spacing: 0.5px;
+}
+
+.recognition-result.unknown .confidence {
+    color: #ef4444;
 }
 
 /* ─── Toasts ────────────────────────────────────────────── */
